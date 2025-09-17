@@ -859,5 +859,33 @@
     "ratingValue": 3,
     "userId": "user-021",
     "timestamp": "2024-02-24T10:00:00.000Z"
+  },
+  {
+    "id": "d0d093a7-e855-4e7e-a021-95c8fe628d20",
+    "resourceId": "res-187e1488-81d3-4a11-a83d-e3c79c8f0001",
+    "ratingValue": 3,
+    "userId": "anonymous",
+    "timestamp": "2025-08-29T10:44:35.862Z"
+  },
+  {
+    "id": "75009aab-dd95-4a41-96f8-7ca551eba187",
+    "resourceId": "res-187e1488-81d3-4a11-a83d-e3c79c8f0001",
+    "ratingValue": 5,
+    "userId": "anonymous",
+    "timestamp": "2025-08-29T10:52:41.828Z"
+  },
+  {
+    "id": "7e31db7d-c9b0-404b-933e-b6ab50823aab",
+    "resourceId": "res-187e1488-81d3-4a11-a83d-e3c79c8f0001",
+    "ratingValue": 1,
+    "userId": "anonymous",
+    "timestamp": "2025-08-29T10:52:52.159Z"
+  },
+  {
+    "id": "33b610ae-7da1-438c-981c-8faa2376f98b",
+    "resourceId": "res-187e1488-81d3-4a11-a83d-e3c79c8f0001",
+    "ratingValue": 1,
+    "userId": "anonymous",
+    "timestamp": "2025-08-29T10:52:54.872Z"
   }
 ]
