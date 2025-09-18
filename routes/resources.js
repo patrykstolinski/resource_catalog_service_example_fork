@@ -21,10 +21,10 @@ import { validateResource, validateRating, validateFeedback } from '../middlewar
 import { readData, writeData } from '../helpers/data_manager.js';
 import { buildEnrichedResource } from '../helpers/enrich_resource.js';
 import { average } from '../helpers/metrics.js';
-import Resource from "../models/resource.js";
-import Rating from "../models/rating.js";
-import Feedback from "../models/feedback.js";
-import { toObjectId, toClient } from "../utils/mongo.js";
+import Resource from '../models/resource.js';
+import Rating from '../models/rating.js';
+import Feedback from '../models/feedback.js';
+import { toObjectId, toClient } from '../utils/mongo.js';
 
 const router = express.Router();
 
@@ -70,34 +70,57 @@ const FEEDBACK_FILE  = 'feedback.json';
  */
 router.get('/', async (req, res, next) => {
   try {
+    // const resources = await readData(RESOURCES_FILE);
+    // const ratings   = await readData(RATINGS_FILE);
+
+    // const { type, authorId } = req.query;
+
+    // let filtered = resources;
+    // if (type)     filtered = filtered.filter(r => String(r.type) === String(type));
+    // if (authorId) filtered = filtered.filter(r => String(r.authorId) === String(authorId));
+
+    // // Anreichern NUR mit averageRating (KEIN feedback anhängen)
+    // const enriched = filtered.map(resource => {
+    //   const resourceId = String(resource.id);
+    //   const resourceRatings = ratings.filter(r => String(r.resourceId) === resourceId);
+    //   const avgRating = average(resourceRatings.map(r => r.ratingValue));
+
+    //   // explizit KEIN 'feedback' Feld zurückgeben
+    //   const { feedback, ...rest } = resource; // falls im Datensatz existiert, entfernen
+    //   return {
+    //     ...rest,
+    //     averageRating: avgRating
+    //   };
+    // });
+
+    // res.status(200).json(enriched);
+
     const resources = await Resource.find().lean();
 
     const ratingAgg = await Rating.aggregate([
-      { $group: { _id: "$resourceId", avg: {$avg: "$ratingValue"} }}
+      { $group: { _id: "$resourceId", avg: { $avg: "$ratingValue" } } }
     ]);
 
     const avgMap = Object.fromEntries(
-      ratingAgg.map((r) => [String(r._id), Number(r.avg?.toFixed(2) ?? 0)])
+      ratingAgg.map((res) => [String(res._id), Number(res.avg?.toFixed(2) ?? 0)])
     );
 
     const enriched = resources.map((resource_doc) => {
       const id = String(resource_doc._id);
       const resource_obj = toClient(resource_doc);
-      return { 
+      return {
         ...resource_obj,
         averageRating: avgMap[id] ?? 0
       };
     });
 
     res.status(200).json(enriched);
-
+    
   } catch (error) {
     console.error('Fehler beim Abrufen aller Ressourcen:', error);
     next(error);
   }
 });
-
-
 
 /**
  * @route GET /:id
@@ -130,7 +153,7 @@ router.get('/', async (req, res, next) => {
  */
 router.get('/:id', async (req, res, next) => {
   try {
-    // const resourceId = req.params.id
+    // const resourceId = req.params.id;
 
     // const resources = await readData(RESOURCES_FILE);
     // const ratings   = await readData(RATINGS_FILE);
@@ -145,26 +168,26 @@ router.get('/:id', async (req, res, next) => {
     // // Hier voll anreichern (averageRating + feedback)
     // const enriched = buildEnrichedResource(resource, ratings, feedback);
     // res.status(200).json(enriched);
-    const _id = toObjectId(req.params.id)
 
-    const resource = await Resource.findById(_id).lean();
+    const _id = toObjectId(req.params.id);
 
-    if (!resource) {
-      res.status(400).json({error: `Resource mit ID ${req.params.id} nicht gefunden.`});
+    const resource_doc = await Resource.findById(_id).lean();
+
+    if (!resource_doc) {
+      res.status(404).json({ error: `Ressource mit ID ${req.params.id} nicht gefunden.` });
       return;
     }
 
-    const { avgDoc } = await Rating.aggregate([
+    const [avgDoc] = await Rating.aggregate([
       { $match: { resourceId: _id } },
-      { $group: { _id: null, avg: { $avg: "ratingValue"} } }
+      { $group: { _id: null, avg: { $avg: "ratingValue" } } }
     ]);
 
     const avgRating = avgDoc?.avg ?? 0;
-    
-    const feedback = await Feedback.find( { resourceId: _id }).lean();
-    
+
+    const feedback = await Feedback.find({ resourceId: _id }).lean();
+
     const resource_obj = toClient(resource_doc);
-    
 
     const enriched_resource = {
       ...resource_obj,
@@ -196,19 +219,13 @@ router.get('/:id', async (req, res, next) => {
  * @returns {Object} 500 - Interner Serverfehler.
  */
 router.post('/', validateResource, async (req, res, next) => {
-  const newResourceData = req.body;
-
-  const newResource = {
-    id: uuidv4(),
-    ...newResourceData,
-    createdAt: new Date().toISOString()
-  };
-
   try {
-    const resources = await readData(RESOURCES_FILE);
-    resources.push(newResource);
-    await writeData(RESOURCES_FILE, resources);
-    res.status(201).json(newResource);
+    const newResource = {
+      ...req.body,
+      createdAt: new Date()
+    };
+    const created_resource = await Resource.create(newResource);
+    res.status(201).json(toClient(created_resource.toObject()));
   } catch (error) {
     console.error('Fehler beim Erstellen einer Ressource:', error);
     next(error);
