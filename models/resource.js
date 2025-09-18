@@ -1,4 +1,4 @@
-import mongoose, { mongo } from "mongoose";
+import mongoose from "mongoose";
 
 const ResourceSchema = new mongoose.Schema(
     {
@@ -12,4 +12,4 @@ const ResourceSchema = new mongoose.Schema(
     { versionKey: false }
 );
 
-export default mongoose.model("Resource", ResourceSchema, "resources")
+export default mongoose.model("Resource", ResourceSchema, "resources");

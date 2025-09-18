@@ -48,14 +48,14 @@ app.use(cors());
 
 /**
  * @section Datenbankverbindung
- * @description Registriert die datenbank
+ * @description Registriert die Datenbank.
  */
 
 if (!process.env.MONGO_URI) {
     console.warn("[MongoDB] MONGO_URI nicht gesetzt - ohne DB keine Persistenz.");
     process.exit(1);
 } else {
-    await connectDB(process.env.MONGO_URI, 
+    await connectDB(process.env.MONGO_URI,
         { dbName: process.env.MONGO_DB || "resource_catalog" }
     );
 }

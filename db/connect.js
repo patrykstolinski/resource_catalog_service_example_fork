@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 export async function connectDB (
     uri,
-    { dbName = process.env.MONGO_DB || "resource_catalog" } = {  }
+    { dbName = process.env.MONGO_DB || "resource_catalog" } = {}
 ) {
     mongoose.set("strictQuery", true);
 
@@ -11,14 +11,13 @@ export async function connectDB (
 
     for (let i = 1; i <= retries; i++) {
         try {
-            await mongoose.connect(uri, { dbName } );
-            console.log(`[MongoDB] Connected to ${dbName}.`)
+            await mongoose.connect(uri, { dbName });
+            console.log(`[MongoDB] connected to ${dbName}`);
             return;
         } catch (err) {
-            console.error(`[MongoDB] Connection attempt ${i}/${retries} failed: ${err.message}.`);
+            console.error(`[MongoDB] connect attempt ${i}/${retries} failed: ${err.message}`);
             await new Promise((r) => setTimeout(r, delayMs));
         }
     }
     process.exit(1);
 };
-
